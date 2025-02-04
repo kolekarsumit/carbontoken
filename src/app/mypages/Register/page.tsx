@@ -134,7 +134,7 @@ const RegisterPage: React.FC = () => {
                         transaction={()=>prepareContractCall({
                             contract:CONTRACT,
                             method:"add_company",
-                            params:[name,industry,BigInt(id),address],
+                            params:[name,industry,BigInt(id),address,ad],
                         })}
                         onTransactionSent={()=>console.log("Data adding ...")}
                         onTransactionConfirmed={()=>
