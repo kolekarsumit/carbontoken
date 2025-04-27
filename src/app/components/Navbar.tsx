@@ -70,6 +70,29 @@ const Navbar: React.FC = () => {
              
              <Link href="/mypages/Profile">Profile</Link>
             </h1>
+
+            <h1
+              style={{
+                margin: 0,
+                fontSize: "20px",
+                color: "black",
+                fontWeight: "bold",
+              }}
+            >
+             <Link href="/mypages/Create_Compaign">Create Campaign</Link>
+            </h1>
+
+            <h1
+              style={{
+                margin: 0,
+                fontSize: "20px",
+                color: "black",
+                fontWeight: "bold",
+              }}
+            >
+             <Link href="/mypages/View_Compaign">View Campaign</Link>
+            </h1>
+            
           </div>
         ) : (
         //   <h1

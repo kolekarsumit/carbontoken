@@ -3,7 +3,7 @@
 pragma solidity >=0.8.2 <0.9.0;
 
 contract CarbonContract {
-    address myaddress = msg.sender;
+    address public myaddress = msg.sender;  // GOV Address (set during deployment)
 
     struct Company {
         string name;
@@ -15,14 +15,28 @@ contract CarbonContract {
         uint256 remaining;
     }
 
+    struct Campaign {
+        string name;
+        string description;
+        uint256 deadline;
+        address takenBy; // address of company who took the campaign
+        bool isCompleted; // true if campaign work completed
+    }
+
+    Campaign[] public campaigns; // List of all campaigns
+
     mapping(address => Company) private companies;
     address[] public companyAddresses;
     mapping(uint256 => bool) private govIdExists;
     mapping(uint256 => address) private govIdToAddress; 
     
-    // Mapping to store year-month data for each company
-    mapping(address => mapping(uint256 => uint256)) private yearMonthData; // company address -> yearMonth -> value
-    mapping(address => uint256[]) private companyYearMonths; // store year-month keys for each company
+    mapping(address => mapping(uint256 => uint256)) private yearMonthData; 
+    mapping(address => uint256[]) private companyYearMonths; 
+
+    modifier onlyGov() {
+        require(msg.sender == myaddress, "Only GOV can perform this action");
+        _;
+    }
 
     // Add a company
     function add_company(
@@ -58,7 +72,7 @@ contract CarbonContract {
         return allcomp;
     }
 
-    // Get my company using GOV ID
+    // Get my company using address
     function getmycompany(string memory _address) public view returns (Company memory) {
         address companyAddress = parseAddress(_address);
         require(companyAddress != address(0), "Company not found for this GOV ID");
@@ -75,7 +89,6 @@ contract CarbonContract {
 
         govIdExists[_gov_id] = false;
         delete govIdToAddress[_gov_id];
-
         delete companies[companyAddress];
 
         for (uint256 i = 0; i < companyAddresses.length; i++) {
@@ -96,21 +109,18 @@ contract CarbonContract {
 
     function parseAddress(string memory _stringAddress) internal pure returns (address) {
         bytes memory addrBytes = bytes(_stringAddress);
-        require(addrBytes.length == 42, "Invalid address length"); // Ensure the string is 42 chars long (0x + 40 hex)
-        require(addrBytes[0] == '0' && addrBytes[1] == 'x', "Address must start with 0x"); // Ensure it starts with 0x
+        require(addrBytes.length == 42, "Invalid address length");
+        require(addrBytes[0] == '0' && addrBytes[1] == 'x', "Address must start with 0x");
 
         uint160 addr = 0;
         for (uint256 i = 2; i < 42; i++) {
             uint160 char = uint160(uint8(addrBytes[i]));
 
             if (char >= 48 && char <= 57) {
-                // 0-9
                 addr = addr * 16 + (char - 48);
             } else if (char >= 65 && char <= 70) {
-                // A-F
                 addr = addr * 16 + (char - 55);
             } else if (char >= 97 && char <= 102) {
-                // a-f
                 addr = addr * 16 + (char - 87);
             } else {
                 revert("Invalid character in address");
@@ -119,29 +129,21 @@ contract CarbonContract {
         return address(addr);
     }
 
-    // Return the contract's address (myaddress)
     function mycomp() public view returns(address) {
         return myaddress;
     }
 
-    // Store year-month data for a company (prevents duplicates)
     function storeYearMonthData(string memory _address, uint256 _yearMonth, uint256 _value) public {
-           address companyAddress = parseAddress(_address);
+        address companyAddress = parseAddress(_address);
         require(companyAddress != address(0), "Company not registered for this GOV ID");
-
-        // Check if the year-month already exists for the company
         require(yearMonthData[companyAddress][_yearMonth] == 0, "Year-month data already exists");
-
-        // Subtract the value from the company's remaining carbon
         require(companies[companyAddress].remaining >= _value, "Insufficient remaining carbon");
-        companies[companyAddress].remaining -= _value;
 
-        // Store the year-month data
+        companies[companyAddress].remaining -= _value;
         yearMonthData[companyAddress][_yearMonth] = _value;
         companyYearMonths[companyAddress].push(_yearMonth);
     }
 
-    // Retrieve all year-month data for a company using GOV ID
     function getYearMonthData(string memory _address) public view returns (uint256[] memory, uint256[] memory) {
         address companyAddress = parseAddress(_address);
         require(companyAddress != address(0), "Company not registered for this GOV ID");
@@ -159,17 +161,65 @@ contract CarbonContract {
         return (yearMonths, values);
     }
 
-    // Retrieve the remaining carbon for a company using GOV ID
     function getRemainingCarbon(string memory _address) public view returns (uint256) {
         address companyAddress = parseAddress(_address);
         require(companyAddress != address(0), "Company not registered for this GOV ID");
 
         return companies[companyAddress].remaining;
     }
+
     function getAllocatedCarbon(string memory _address) public view returns (uint256) {
-         address companyAddress = parseAddress(_address);
+        address companyAddress = parseAddress(_address);
         require(companyAddress != address(0), "Company not registered for this GOV ID");
 
         return companies[companyAddress].allocatedcarbon;
     }
+
+    // ==============================
+    // ✅✅ Campaign Related Functions
+    // ==============================
+
+    // GOV creates a new campaign
+    function createCampaign(string memory _name, string memory _description, uint256 _deadline) public onlyGov {
+        Campaign memory newCampaign = Campaign({
+            name: _name,
+            description: _description,
+            deadline: _deadline,
+            takenBy: address(0),
+            isCompleted: false
+        });
+
+        campaigns.push(newCampaign);
+    }
+
+    // Any user can view all campaigns
+    function getAllCampaigns() public view returns (Campaign[] memory) {
+        return campaigns;
+    }
+
+    // Company can take a campaign if available
+    function takeCampaign(uint256 _campaignId) public {
+        require(_campaignId < campaigns.length, "Invalid campaign ID");
+
+        Campaign storage campaign = campaigns[_campaignId];
+
+        require(campaign.takenBy == address(0), "Campaign already taken");
+        require(!campaign.isCompleted, "Campaign already completed");
+        require(bytes(companies[msg.sender].name).length != 0, "Only registered companies can take a campaign");
+
+        campaign.takenBy = msg.sender;
+    }
+    // Function to mark a campaign as completed
+function markCompleted(uint256 _campaignId) public {
+    require(_campaignId < campaigns.length, "Invalid campaign ID");
+
+    Campaign storage campaign = campaigns[_campaignId];
+
+    require(campaign.takenBy != address(0), "Campaign not yet taken by any company");
+    require(campaign.takenBy == msg.sender, "Only the company who took this campaign can mark it completed");
+    require(!campaign.isCompleted, "Campaign already marked as completed");
+
+    campaign.isCompleted = true;
+}
+
 }

@@ -65,7 +65,7 @@ console.log("Company data:", company);
               {/* Industry Type and Company Address */}
               <div style={infoRowStyle}>
                 <div style={labelStyle}>Industry:</div>
-                <div>{company.industry_type}</div>
+                <div>{company.industry_type}</div>s
               </div>
               <div style={infoRowStyle}>
                 <div style={labelStyle}>Company Address:</div>
