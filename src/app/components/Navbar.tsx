@@ -10,7 +10,6 @@ import { useRouter } from "next/navigation";
 const Navbar: React.FC = () => {
   const account = useActiveAccount();
   
-  
 
   return (
     <div
@@ -92,19 +91,21 @@ const Navbar: React.FC = () => {
             >
              <Link href="/mypages/View_Compaign">View Campaign</Link>
             </h1>
+
+            <h1
+              style={{
+                margin: 0,
+                fontSize: "20px",
+                color: "black",
+                fontWeight: "bold",
+              }}
+            >
+             <Link href="/mypages/Allocate_Carbon">Allocate Carbon</Link>
+            </h1>
             
           </div>
         ) : (
-        //   <h1
-        //     style={{
-        //       margin: 0,
-        //       fontSize: "20px",
-        //       color: "gray",
-        //       fontWeight: "bold",
-        //     }}
-        //   >
-        //     Welcome to Carbon Market
-        //   </h1>
+      
         <h1></h1>
         )}
       </div>

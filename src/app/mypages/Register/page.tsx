@@ -27,17 +27,7 @@ const RegisterPage: React.FC = () => {
     };
     const handleLoginRedirect = () => {
         rount.push("/mypages/Login");
-    };
-
-
-
-
-
-
-
-
-
-
+    };     
     
     //   const [id, setId] = useState("");
     
@@ -63,20 +53,6 @@ const RegisterPage: React.FC = () => {
       }, [ad, setMetaMaskAddress]);
     
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     return (
         <Container>

@@ -8,9 +8,10 @@ export const client=createThirdwebClient({
 
 export const chain=defineChain(11155111);
 
-const contractAddress="0xcf1cFcB78892C36AfB67E05B623641BBb20700e3";
+const contractAddress="0xe8FCf4b693877aD0b0069eda47111A8CFa4D9ec3";
 
-const contractABI=[
+const contractABI=
+[
   {
     "inputs": [
       {
@@ -113,6 +114,11 @@ const contractABI=[
         "internalType": "uint256",
         "name": "_deadline",
         "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_address",
+        "type": "string"
       }
     ],
     "name": "createCampaign",
@@ -412,6 +418,29 @@ const contractABI=[
       }
     ],
     "name": "takeCampaign",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_newAllocation",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_companyAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "_govAddress",
+        "type": "string"
+      }
+    ],
+    "name": "updateAllocatedCarbon",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

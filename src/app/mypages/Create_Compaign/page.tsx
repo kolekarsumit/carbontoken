@@ -1,9 +1,11 @@
 'use client'
 
 import React, { useState } from 'react';
-// import { useContract } from 'thirdweb/react';  // Thirdweb hook for interacting with the contract
-// import { CONTRACT } from '../../../utils/constant';  // Contract details
+
 import { useRouter } from 'next/navigation';  // For navigation after creating the campaign
+import { TransactionButton ,useActiveAccount} from 'thirdweb/react';
+import { prepareContractCall } from 'thirdweb';
+import { CONTRACT } from '../../../../utils/constant';
 
 const CreateCampaign: React.FC = () => {
   const [campaignName, setCampaignName] = useState('');
@@ -13,31 +15,16 @@ const CreateCampaign: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   
+      const account=useActiveAccount();
+  
   const router = useRouter();
+  const ad = account
+  ? typeof account === "string"
+    ? JSON.parse(account).address 
+    : account.address 
+  : "MetaMask not connected";
 
-  // Using thirdweb's useContract hook to interact with the contract
-//   const { contract } = useContract(CONTRACT);
 
-  // Function to handle form submission
-  const handleCreateCampaign = async () => {
-    try {
-      if (!campaignName || !description || !startDate || !endDate) {
-        setErrorMessage('Please fill in all fields.');
-        return;
-      }
-      
-      // Call the smart contract method to create the campaign
-    //   const tx = await contract.call('createCampaign', [campaignName, description, startDate, endDate]);
-      
-      // Wait for the transaction to be confirmed
-    //   await tx.wait();
-
-      setSuccessMessage('Campaign created successfully!');
-      router.push('/mypages/View_Compaign');  // Redirect to View Campaign page after success
-    } catch (error: any) {
-      setErrorMessage(`Error: ${error.message}`);
-    }
-  };
 
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: 'auto' }}>
@@ -116,21 +103,41 @@ const CreateCampaign: React.FC = () => {
         </div>
       </div>
 
-      <button
-        onClick={handleCreateCampaign}
-        style={{
-          width: '100%',
-          padding: '12px',
-          backgroundColor: '#007bff',
-          color: 'white',
-          border: 'none',
-          borderRadius: '5px',
-          fontSize: '16px',
-          cursor: 'pointer',
-        }}
-      >
-        Create Campaign
-      </button>
+
+
+
+
+      <TransactionButton
+  transaction={async () => {
+    try {
+      const tx = await prepareContractCall({
+        contract: CONTRACT,
+        method: "createCampaign",
+        params: [campaignName, description, BigInt(new Date(endDate).getTime()), ad],
+      });
+
+      return tx;
+    } catch (err) {
+      console.error("Contract preparation failed:", err); // Log the error to console
+      throw err; // Important to rethrow so TransactionButton knows it's an error
+    }
+  }}
+  onTransactionSent={() => console.log("Transaction sent...")}
+  onTransactionConfirmed={() => {
+    console.log("Transaction confirmed!");
+    setSuccessMessage('Campaign created successfully!');
+    setErrorMessage('');
+    router.push('/mypages/View_Compaign');
+  }}
+  onError={(error) => {
+    console.error("Transaction error:", error);
+    setErrorMessage(`Error: ${error.message}`);
+    setSuccessMessage('');
+  }}
+>
+  Create 1
+</TransactionButton>
+
     </div>
   );
 };

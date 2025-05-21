@@ -19,8 +19,8 @@ contract CarbonContract {
         string name;
         string description;
         uint256 deadline;
-        address takenBy; // address of company who took the campaign
-        bool isCompleted; // true if campaign work completed
+        address takenBy; 
+        bool isCompleted;
     }
 
     Campaign[] public campaigns; // List of all campaigns
@@ -33,10 +33,10 @@ contract CarbonContract {
     mapping(address => mapping(uint256 => uint256)) private yearMonthData; 
     mapping(address => uint256[]) private companyYearMonths; 
 
-    modifier onlyGov() {
-        require(msg.sender == myaddress, "Only GOV can perform this action");
-        _;
-    }
+    // modifier onlyGov() {
+    //     require(msg.sender == myaddress, "Only GOV can perform this action");
+    //     _;
+    // }
 
     // Add a company
     function add_company(
@@ -57,7 +57,7 @@ contract CarbonContract {
         companyAddresses.push(msg.sender);
         govIdExists[_gov_add] = true;
         govIdToAddress[_gov_add] = msg.sender; 
-        companies[msg.sender] = Company(_name, _industry, _gov_add, _comp_add, msg.sender, 1000, 1000);
+        companies[msg.sender] = Company(_name, _industry, _gov_add, _comp_add, msg.sender, 0, 0);
     }
 
     // Get all companies
@@ -175,12 +175,11 @@ contract CarbonContract {
         return companies[companyAddress].allocatedcarbon;
     }
 
-    // ==============================
-    // ✅✅ Campaign Related Functions
-    // ==============================
 
     // GOV creates a new campaign
-    function createCampaign(string memory _name, string memory _description, uint256 _deadline) public onlyGov {
+    function createCampaign(string memory _name, string memory _description, uint256 _deadline,string memory _address) public {
+        address compAddress=parseAddress(_address);
+        require(compAddress==0x07b89e781A89F808508D257F651854b5751B8C05,"Only gov should create a new campaign");
         Campaign memory newCampaign = Campaign({
             name: _name,
             description: _description,
@@ -221,5 +220,18 @@ function markCompleted(uint256 _campaignId) public {
 
     campaign.isCompleted = true;
 }
+
+
+// Function to update allocated carbon for a company
+function updateAllocatedCarbon(uint256 _newAllocation, address _companyAddress,string memory _govAddress) public {
+
+     address govAdd=parseAddress(_govAddress);
+        require(govAdd==0x07b89e781A89F808508D257F651854b5751B8C05,"Only GOV can update allocation");
+    require(bytes(companies[_companyAddress].name).length != 0, "Company not registered");
+
+    companies[_companyAddress].allocatedcarbon = _newAllocation;
+    companies[_companyAddress].remaining = _newAllocation;
+}
+
 
 }
