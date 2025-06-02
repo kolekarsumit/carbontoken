@@ -2,185 +2,217 @@
 
 import React from 'react';
 import { CONTRACT } from '../../../../utils/constant';
-import { useReadContract,/* useWriteContract, useAddress */useActiveAccount,TransactionButton} from 'thirdweb/react';
+import {
+  useReadContract,
+  useActiveAccount,
+  TransactionButton,
+} from 'thirdweb/react';
 import { prepareContractCall } from 'thirdweb';
+
 const ViewCampaigns: React.FC = () => {
-  const address = useActiveAccount(); // Current connected company
+  const address = useActiveAccount();
+
   const { data: campaigns, isLoading, error } = useReadContract({
     contract: CONTRACT,
     method: 'getAllCampaigns',
   });
 
-  // const { mutateAsync: takeCampaign } = useWriteContract(CONTRACT);
-  // const { mutateAsync: markCompleted } = useWriteContract(CONTRACT);
-
-  const handleTakeCampaign = async (index: number) => {
-    try {
-      // await takeCampaign({
-      //   method: 'takeCampaign',
-      //   params: [index],
-      // });
-      alert('Campaign successfully taken!');
-    } catch (err) {
-      alert('Error taking campaign');
-      console.error(err);
-    }
-  };
-
-  const handleMarkCompleted = async (index: number) => {
-    try {
-      // await markCompleted({
-      //   method: 'markCompleted',
-      //   params: [index],
-      // });
-      alert('Campaign marked as completed!');
-    } catch (err) {
-      alert('Error marking campaign as completed');
-      console.error(err);
-    }
-  };
-
-      
   const ad = address
-  ? typeof address === "string"
-    ? JSON.parse(address).address 
-    : address.address 
-  : "MetaMask not connected";
+    ? typeof address === 'string'
+      ? JSON.parse(address).address
+      : address.address
+    : 'MetaMask not connected';
 
-  const formatAddress = (addr: string) => `${addr.slice(0, 4)}...${addr.slice(-4)}`;
+  const formatAddress = (addr: string) =>
+    `${addr.slice(0, 4)}...${addr.slice(-4)}`;
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h1 style={{ textAlign: 'center', marginBottom: '20px' }}>Available Campaigns</h1>
-      {/* <h2>{address}</h2> */}
+    <div
+      style={{
+        padding: '40px',
+        background: 'linear-gradient(to right, #e3f2fd, #ffffff)',
+        minHeight: '100vh',
+      }}
+    >
+      <h1
+        style={{
+          textAlign: 'center',
+          marginBottom: '40px',
+          fontSize: '2rem',
+          fontWeight: 'bold',
+          color: '#2c3e50',
+        }}
+      >
+        Available Campaigns
+      </h1>
 
       {isLoading ? (
         <p>Loading campaigns...</p>
       ) : error ? (
         <p>Error: {error.message}</p>
       ) : campaigns && campaigns.length > 0 ? (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', justifyContent: 'center' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '30px',
+            justifyContent: 'center',
+          }}
+        >
           {campaigns.map((camp: any, index: number) => {
-            const isTaken = camp.takenBy !== '0x0000000000000000000000000000000000000000';
+            const isTaken =
+              camp.takenBy !==
+              '0x0000000000000000000000000000000000000000';
             const isCompleted = camp.isCompleted;
-            const isTakenByCurrent = address &&  camp.takenBy.toLowerCase() === ad.toLowerCase();
+            const isTakenByCurrent =
+              address && camp.takenBy.toLowerCase() === ad.toLowerCase();
 
             return (
               <div
                 key={index}
                 style={{
-                  border: '1px solid #ccc',
-                  borderRadius: '10px',
-                  padding: '15px',
-                  width: '300px',
-                  background: '#fff',
-                  boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                  borderRadius: '16px',
+                  padding: '20px',
+                  width: '320px',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  boxShadow: '0 8px 20px rgba(0, 0, 0, 0.1)',
+                  transition: 'transform 0.3s ease',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.transform =
+                    'translateY(-5px)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.transform =
+                    'translateY(0)';
                 }}
               >
-                <h3 style={{ color: '#333' }}>{camp.name}</h3>
-                <h4>taken {isTakenByCurrent}</h4>
-                <p style={{ color: '#555' }}>{camp.description}</p>
-                <p>
+                <h3
+                  style={{
+                    color: '#2c3e50',
+                    fontSize: '1.3rem',
+                    marginBottom: '10px',
+                    fontWeight: 600,
+                  }}
+                >
+                  {camp.name}
+                </h3>
+
+                <p
+                  style={{
+                    color: '#555',
+                    fontSize: '0.95rem',
+                    marginBottom: '10px',
+                  }}
+                >
+                  {camp.description}
+                </p>
+
+                <p style={{ fontSize: '0.85rem', color: '#777' }}>
                   <strong>Deadline:</strong>{' '}
                   {new Date(Number(camp.deadline) * 1000).toLocaleDateString()}
                 </p>
-                <p>
+
+                <p style={{ fontSize: '0.9rem', marginTop: '8px' }}>
                   <strong>Status:</strong>{' '}
                   {isCompleted ? (
-                    '✅ Completed'
+                    <span style={{ color: '#28a745' }}>✅ Completed</span>
                   ) : !isTaken ? (
-                    '🟢 Available'
+                    <span style={{ color: '#17a2b8' }}>🟢 Available</span>
                   ) : isTakenByCurrent ? (
-                    '🟡 Taken by you'
+                    <span style={{ color: '#ffc107' }}>🟡 Taken by you</span>
                   ) : (
-                    `🔴 Taken by ${formatAddress(camp.takenBy)}`
+                    <span style={{ color: '#dc3545' }}>
+                      🔴 Taken by {formatAddress(camp.takenBy)}
+                    </span>
                   )}
                 </p>
 
-                {/* TAKE CAMPAIGN button */}
+                {/* TAKE CAMPAIGN */}
                 {!isCompleted && !isTaken && (
-                   <TransactionButton
-                       transaction={()=>prepareContractCall({
-                                               contract:CONTRACT,
-                                               method:"takeCampaign",
-                                               params:[BigInt(index)],
-                                           })}
-                                           onTransactionSent={()=>console.log("Data adding ...")}
-                                           onTransactionConfirmed={()=>
-                                           {
-                                               console.log("Data added sucessfully");
-                                           }   
-                                           }
-                                           onError={(err) => console.error('Error taking campaign:', err)}
-                   >
-                    Take  1
-                   </TransactionButton>
-                  
-
-
-
-
-                  // <button
-                    // onClick={() => handleTakeCampaign(index)}
-                  //   style={{
-                  //     marginTop: '10px',
-                  //     padding: '8px 12px',
-                  //     border: 'none',
-                  //     borderRadius: '5px',
-                  //     backgroundColor: '#28a745',
-                  //     color: '#fff',
-                  //     cursor: 'pointer',
-                  //   }}
-                  // >
-                  //   Take Campaign
-                  // </button>
+                  <TransactionButton
+                    transaction={() =>
+                      prepareContractCall({
+                        contract: CONTRACT,
+                        method: 'takeCampaign',
+                        params: [BigInt(index)],
+                      })
+                    }
+                    onTransactionSent={() =>
+                      console.log('Taking campaign...')
+                    }
+                    onTransactionConfirmed={() =>
+                      console.log('Campaign successfully taken')
+                    }
+                    onError={(err) =>
+                      console.error('Error taking campaign:', err)
+                    }
+                    style={{
+                      marginTop: '15px',
+                      padding: '10px',
+                      width: '100%',
+                      borderRadius: '8px',
+                      backgroundColor: '#007bff',
+                      color: 'white',
+                      fontWeight: 600,
+                      fontSize: '15px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      transition: 'background 0.3s ease',
+                    }}
+                  >
+                    🤝 Take Campaign
+                  </TransactionButton>
                 )}
 
-                {/* MARK COMPLETED button (only by owner and if not completed) */}
+                {/* MARK COMPLETED */}
                 {!isCompleted && isTakenByCurrent && (
-
-                         <TransactionButton
-                                 transaction={()=>prepareContractCall({
-                        contract:CONTRACT,
-                        method:"markCompleted",
-                        params:[BigInt(index)],
-                    })}
-                    onTransactionSent={()=>console.log("Data adding ...")}
-                    onTransactionConfirmed={()=>
-                    {
-                        console.log("Data added sucessfully");
-                    }   
+                  <TransactionButton
+                    transaction={() =>
+                      prepareContractCall({
+                        contract: CONTRACT,
+                        method: 'markCompleted',
+                        params: [BigInt(index)],
+                      })
                     }
-                    onError={(err) => console.error('Error taking campaign:', err)}
-                     >
-                       as Completed
-                 </TransactionButton>
-
-
-
-
-
-                  // <button
-                  //   onClick={() => handleMarkCompleted(index)}
-                  //   style={{
-                  //     marginTop: '10px',
-                  //     padding: '8px 12px',
-                  //     border: 'none',
-                  //     borderRadius: '5px',
-                  //     backgroundColor: '#007bff',
-                  //     color: '#fff',
-                  //     cursor: 'pointer',
-                  //   }}
-                  // >
-                  //   Mark as Completed
-                  // </button>
+                    onTransactionSent={() =>
+                      console.log('Marking completed...')
+                    }
+                    onTransactionConfirmed={() =>
+                      console.log('Marked as completed')
+                    }
+                    onError={(err) =>
+                      console.error('Error marking completed:', err)
+                    }
+                    style={{
+                      marginTop: '12px',
+                      padding: '10px',
+                      width: '100%',
+                      borderRadius: '8px',
+                      backgroundColor: '#28a745',
+                      color: 'white',
+                      fontWeight: 600,
+                      fontSize: '15px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      transition: 'background 0.3s ease',
+                    }}
+                  >
+                    ✅ Mark as Completed
+                  </TransactionButton>
                 )}
               </div>
             );
           })}
         </div>
       ) : (
-        <p>No campaigns available.</p>
+        <p style={{ textAlign: 'center', color: '#999' }}>
+          No campaigns available.
+        </p>
       )}
     </div>
   );

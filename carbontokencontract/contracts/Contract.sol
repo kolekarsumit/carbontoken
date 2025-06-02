@@ -179,7 +179,7 @@ contract CarbonContract {
     // GOV creates a new campaign
     function createCampaign(string memory _name, string memory _description, uint256 _deadline,string memory _address) public {
         address compAddress=parseAddress(_address);
-        require(compAddress==0x07b89e781A89F808508D257F651854b5751B8C05,"Only gov should create a new campaign");
+        require(compAddress==0x68a6B62dEb244F2f1dF5Ca6Cbb0B8F6b1956A60D,"Only gov should create a new campaign");
         Campaign memory newCampaign = Campaign({
             name: _name,
             description: _description,
@@ -226,7 +226,7 @@ function markCompleted(uint256 _campaignId) public {
 function updateAllocatedCarbon(uint256 _newAllocation, address _companyAddress,string memory _govAddress) public {
 
      address govAdd=parseAddress(_govAddress);
-        require(govAdd==0x07b89e781A89F808508D257F651854b5751B8C05,"Only GOV can update allocation");
+        require(govAdd==0x68a6B62dEb244F2f1dF5Ca6Cbb0B8F6b1956A60D,"Only GOV can update allocation");
     require(bytes(companies[_companyAddress].name).length != 0, "Company not registered");
 
     companies[_companyAddress].allocatedcarbon = _newAllocation;

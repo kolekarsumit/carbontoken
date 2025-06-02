@@ -1,143 +1,174 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { Form, Button, Container, Row, Col } from 'react-bootstrap';
-import { ConnectButton, ThirdwebProvider, TransactionButton, useActiveAccount } from 'thirdweb/react';
+import { Form, Button, Container, Row, Col, Card } from 'react-bootstrap';
+import {
+  ConnectButton,
+  TransactionButton,
+  useActiveAccount,
+} from 'thirdweb/react';
 import { prepareContractCall } from 'thirdweb';
-import { CONTRACT } from '../../../../utils/constant'
+import { CONTRACT } from '../../../../utils/constant';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useNumber } from '@/app/numberContext';
 
 const RegisterPage: React.FC = () => {
+  const router = useRouter();
+  const [name, setName] = useState('');
+  const [address, setAddress] = useState('');
+  const [id, setId] = useState('');
+  const [industry, setIndustry] = useState('');
+  const account = useActiveAccount();
 
-    const rount=useRouter();
-    const [name, setName] = useState('');
-    const [address, setAddress] = useState('');
-    const [id, setId] = useState('');
-    const [industry, setIndustry] = useState('');
+  const { number, setNumber, metaMaskAddress, setMetaMaskAddress } = useNumber();
 
-    const account=useActiveAccount();
+  const ad =
+    account && typeof account !== 'string'
+      ? account.address
+      : typeof account === 'string'
+      ? JSON.parse(account).address
+      : 'MetaMask not connected';
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        console.log("Form submitted with:", { name, address, id,industry,account });
-        
-    console.log("curret metamask address: "+address);
-    };
-    const handleLoginRedirect = () => {
-        rount.push("/mypages/Login");
-    };     
-    
-    //   const [id, setId] = useState("");
-    
-      const { number, setNumber, metaMaskAddress, setMetaMaskAddress } = useNumber(); 
-    
-    
-      const ad = account
-      ? typeof account === "string"
-        ? JSON.parse(account).address 
-        : account.address 
-      : "MetaMask not connected";
-    
-      useEffect(() => {
-        if (id !== null) {
-          setNumber(id); // Store the entered number in the context
-        }
-      }, [id,setNumber]);
-    
-      useEffect(() => {
-        if (account) {
-            setMetaMaskAddress(ad); // Store the MetaMask address in the context
-        }
-      }, [ad, setMetaMaskAddress]);
-    
-    
+  useEffect(() => {
+    if (id !== null) {
+      setNumber(id);
+    }
+  }, [id, setNumber]);
 
-    return (
-        <Container>
-            <Row className="justify-content-center mt-5">
-                <Col md={6}>
-                    <h2 className="text-center">Register </h2>
-                    <Form onSubmit={handleSubmit}>
-                        <Form.Group controlId="formName" className="mb-3">
-                            <Form.Label>Name</Form.Label>
-                            <Form.Control
-                                type="text"
-                                placeholder="Enter your name"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                            />
-                        </Form.Group>
+  useEffect(() => {
+    if (account) {
+      setMetaMaskAddress(ad);
+    }
+  }, [ad, setMetaMaskAddress]);
 
-                        <Form.Group controlId="formAddress" className="mb-3">
-                            <Form.Label>Company Address</Form.Label>
-                            <Form.Control
-                                type="text"
-                                placeholder="Enter your address"
-                                value={address}
-                                onChange={(e) => setAddress(e.target.value)}
-                            />
-                        </Form.Group>
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Form submitted with:", { name, address, id, industry, account });
+  };
 
-                        <Form.Group controlId="formId" className="mb-3">
-                            <Form.Label>Government ID</Form.Label>
-                            <Form.Control
-                                type="text"
-                                placeholder="Enter your ID"
-                                value={id}
-                                onChange={(e) => setId(e.target.value)}
-                            />
-                        </Form.Group>
-                        <Form.Group controlId="formId" className="mb-3">
-                            <Form.Label>Emission Industry</Form.Label>
-                            <Form.Control
-                                type="text"
-                                placeholder="Enter your ID"
-                                value={industry}
-                                onChange={(e) => setIndustry(e.target.value)}
-                            />
-                        </Form.Group>
-                        <Form.Group controlId="formId" className="mb-3">
-                            <Form.Label>Metamask Address</Form.Label>    
-                            <p>
-                            {account ? (typeof account === "string" ? account : JSON.stringify(account)) : " MetaMask not connected"}
-           </p>
-                        </Form.Group>
+  const handleLoginRedirect = () => {
+    router.push("/mypages/Login");
+  };
 
+  return (
+    <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
+      <Card
+        style={{
+          width: '100%',
+          maxWidth: '600px',
+          padding: '30px',
+          borderRadius: '16px',
+          background: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(10px)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+        }}
+      >
+        <h2 className="text-center mb-4">Company Registration</h2>
 
-                        <TransactionButton
-                        transaction={()=>prepareContractCall({
-                            contract:CONTRACT,
-                            method:"add_company",
-                            params:[name,industry,BigInt(id),address],
-                        })}
-                        onTransactionSent={()=>console.log("Data adding ...")}
-                        onTransactionConfirmed={()=>
-                        {
-                            console.log("Data added sucessfully");
-                            rount.push("/mypages/Home");
-                        }   
-                        }
-                        > Submit </TransactionButton>
-                        
+        <Form onSubmit={handleSubmit}>
+          <Form.Group controlId="formName" className="mb-3">
+            <Form.Label className="fw-semibold">Name</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Enter your name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </Form.Group>
 
-                        {/* <Link href="\components\LoginPage.tsx"> go to login</Link> */}
-  <Button variant="link" onClick={handleLoginRedirect} className="mt-3">
-                            Already have an account? Login here
-                        </Button>
+          <Form.Group controlId="formAddress" className="mb-3">
+            <Form.Label className="fw-semibold">Company Address</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Enter company address"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              required
+            />
+          </Form.Group>
 
+          <Form.Group controlId="formId" className="mb-3">
+            <Form.Label className="fw-semibold">Government ID</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Enter your ID"
+              value={id}
+              onChange={(e) => setId(e.target.value)}
+              required
+            />
+          </Form.Group>
 
+          <Form.Group controlId="formIndustry" className="mb-3">
+            <Form.Label className="fw-semibold">Emission Industry</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Enter your emission industry"
+              value={industry}
+              onChange={(e) => setIndustry(e.target.value)}
+              required
+            />
+          </Form.Group>
 
+          <Form.Group controlId="formMetaMask" className="mb-3">
+            <Form.Label className="fw-semibold">MetaMask Address</Form.Label>
+            <div
+              style={{
+                backgroundColor: '#f1f1f1',
+                padding: '10px',
+                borderRadius: '8px',
+                fontSize: '14px',
+              }}
+            >
+              {account
+                ? typeof account === 'string'
+                  ? account
+                  : JSON.stringify(account)
+                : 'MetaMask not connected'}
+            </div>
+          </Form.Group>
 
-                    </Form>
-                </Col>
-            </Row>
-        </Container>
-    );
+          <TransactionButton
+            transaction={() =>
+              prepareContractCall({
+                contract: CONTRACT,
+                method: "add_company",
+                params: [name, industry, BigInt(id), address],
+              })
+            }
+            onTransactionSent={() => console.log("Submitting registration...")}
+            onTransactionConfirmed={() => {
+              console.log("Registration successful!");
+              router.push("/mypages/Home");
+            }}
+            style={{
+              width: '100%',
+              padding: '12px',
+              borderRadius: '10px',
+              backgroundColor: '#007bff',
+              color: '#fff',
+              fontWeight: 600,
+              fontSize: '16px',
+              border: 'none',
+              marginTop: '10px',
+            }}
+          >
+            🚀 Submit Registration
+          </TransactionButton>
+
+          <Button
+            variant="link"
+            onClick={handleLoginRedirect}
+            className="mt-3 w-100 text-center"
+          >
+            Already have an account? <strong>Login here</strong>
+          </Button>
+        </Form>
+      </Card>
+    </Container>
+  );
 };
 
 export default RegisterPage;
-
-
-

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Form, Button, Container, Row, Col } from "react-bootstrap";
+import { Form, Button, Container, Row, Col, Card, Spinner } from "react-bootstrap";
 import {
   useActiveAccount,
   useReadContract,
@@ -13,91 +13,114 @@ import Link from "next/link";
 
 const LoginPage: React.FC = () => {
   const router = useRouter(); 
-
   const [id, setId] = useState("");
-  const account = useActiveAccount();
+  const [errorMessage, setErrorMessage] = useState("");
 
+  const account = useActiveAccount();
   const { number, setNumber, metaMaskAddress, setMetaMaskAddress } = useNumber(); 
 
-
-  const ad = account
-  ? typeof account === "string"
+  const ad = account && typeof account !== "string"
+    ? account.address 
+    : typeof account === "string"
     ? JSON.parse(account).address 
-    : account.address 
-  : "MetaMask not connected";
+    : "MetaMask not connected";
 
   useEffect(() => {
     if (id !== null) {
-      setNumber(id); // Store the entered number in the context
+      setNumber(id);
     }
-  }, [id,setNumber]);
+  }, [id, setNumber]);
 
   useEffect(() => {
     if (account) {
-        setMetaMaskAddress(ad); // Store the MetaMask address in the context
+      setMetaMaskAddress(ad);
     }
   }, [ad, setMetaMaskAddress]);
 
-
   const {
-    data:result,
-    isLoading:loading,
-  }=useReadContract({
-    contract:CONTRACT,
-    method:"validateGovId",
-    params:[BigInt(id),ad],
+    data: result,
+    isLoading: loading,
+  } = useReadContract({
+    contract: CONTRACT,
+    method: "validateGovId",
+    params: [BigInt(id || 0), ad],
   });
-
 
   const handleLogin = async () => {
     try {
-      console.log(result)
-      if(result){
+      if (result) {
         router.push("/mypages/Home");
-        // console.log("Hello")
+      } else {
+        setErrorMessage("Invalid Government ID or MetaMask address.");
       }
-      else{
-        console.log("sorry")
-      }
-
     } catch (error) {
       console.error("Error validating ID:", error);
-      alert("An error occurred while validating the ID.");
+      setErrorMessage("An error occurred while validating the ID.");
     }
   };
 
   return (
-    <Container>
-  <Row className="justify-content-center mt-5">
-    <Col md={6}>
-      <h2 className="text-center">Login</h2>
-      <h2>{id}</h2>
-      <Form>
-        <Form.Group controlId="formName" className="mb-3">
-          <Form.Label>Government Id</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="Enter Government Id"
-            value={id}
-            onChange={(e) => setId(e.target.value)}
-          />
-        </Form.Group>
+    <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
+      <Card
+        style={{
+          width: "100%",
+          maxWidth: "500px",
+          padding: "30px",
+          borderRadius: "16px",
+          background: "rgba(255, 255, 255, 0.1)",
+          backdropFilter: "blur(10px)",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
+          border: "1px solid rgba(255, 255, 255, 0.2)",
+        }}
+      >
+        <h2 className="text-center mb-4">Company Login</h2>
 
-        <Form.Group controlId="formId" className="mb-3">
-          <Form.Label>Metamask Auto fetch Address</Form.Label>
-          <p>{ad}</p>
-        </Form.Group>
-      </Form>
+        <Form>
+          <Form.Group controlId="formGovId" className="mb-3">
+            <Form.Label className="fw-semibold">Government ID</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Enter your government ID"
+              value={id}
+              onChange={(e) => setId(e.target.value)}
+              required
+            />
+          </Form.Group>
 
-      <div className="d-flex gap-3">
-        <Button onClick={handleLogin}>Login</Button>
-        <Link href="/mypages/Register" className="btn btn-link">Register</Link>
-      </div>
-    </Col>
-  </Row>
-</Container>
+          <Form.Group controlId="formMetaMask" className="mb-3">
+            <Form.Label className="fw-semibold">MetaMask Address</Form.Label>
+            <div
+              style={{
+                backgroundColor: "#f1f1f1",
+                padding: "10px",
+                borderRadius: "8px",
+                fontSize: "14px",
+              }}
+            >
+              {ad}
+            </div>
+          </Form.Group>
 
+          {errorMessage && (
+            <p className="text-danger text-center mt-2">{errorMessage}</p>
+          )}
 
+          <div className="d-grid gap-2 mt-4">
+            <Button
+              variant="primary"
+              onClick={handleLogin}
+              disabled={loading}
+            >
+              {loading ? <Spinner animation="border" size="sm" /> : "Login"}
+            </Button>
+
+            <Link href="/mypages/Register" className="btn btn-link text-center">
+              Don’t have an account? <strong>Register here</strong>
+            </Link>
+          </div>
+        </Form>
+      </Card>
+    </Container>
   );
 };
 
